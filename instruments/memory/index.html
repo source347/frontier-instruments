@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Explore agent memory retrieval, consolidation, decay, and context selection.">
+<title>Agent Memory Simulator — Frontier Instruments</title>
+<link rel="stylesheet" href="../../assets/css/lab.css"><link rel="stylesheet" href="memory.css">
+</head>
+<body>
+<header><a class="brand" href="../../">F/I · FRONTIER INSTRUMENTS</a><a href="../../instruments/">← All instruments</a></header>
+<main>
+<p class="eyebrow">SOURCE347 / INSTRUMENT 003</p>
+<h1>Agent Memory Simulator</h1>
+<p class="lead">Explore how an agent can encode experiences, retrieve relevant memories, consolidate repeated information, and manage a bounded context window.</p>
+<div class="notice">ILLUSTRATIVE MEMORY MODEL — scores, decay, and consolidation are transparent heuristics for teaching. This is not a production memory subsystem, vector database, cognitive model, or benchmark.</div>
+<section class="panel">
+<div class="section-head"><div><p class="eyebrow">01 / MEMORY STORE</p><h2>Experiences and facts</h2></div><span class="tag" id="store-count">6 RECORDS</span></div>
+<div class="toolbar"><label>Advance time <select id="time-step"><option value="1">1 day</option><option value="7" selected>7 days</option><option value="30">30 days</option><option value="90">90 days</option></select></label><button class="secondary-button" id="advance">Advance clock</button><button class="secondary-button" id="reset">Reset simulation</button><span class="fineprint" id="clock">Simulation day 0</span></div>
+<div class="table-wrap"><table class="memory-table"><thead><tr><th>MEMORY</th><th>TYPE</th><th>IMPORTANCE</th><th>STRENGTH</th><th>AGE</th><th></th></tr></thead><tbody id="memory-rows"></tbody></table></div>
+<form id="add-form" class="add-form">
+<label>New memory<input id="memory-text" maxlength="180" required placeholder="e.g. User prefers concise technical reports"></label>
+<label>Type<select id="memory-type"><option value="fact">Fact</option><option value="event">Event</option><option value="preference">Preference</option><option value="procedure">Procedure</option></select></label>
+<label>Importance <output id="importance-out">3</output><input id="importance" type="range" min="1" max="5" value="3"></label>
+<button type="submit">Encode memory +</button>
+</form>
+</section>
+<section class="panel">
+<div class="section-head"><div><p class="eyebrow">02 / RETRIEVAL</p><h2>Query the memory store</h2></div><span class="tag">RANKED RECALL</span></div>
+<p class="explain">The simulator tokenizes the query and each memory, then combines lexical overlap, importance, and recency. This makes ranking inspectable; it is not embedding-based semantic search.</p>
+<div class="query-row"><input id="query" value="technical report preferences" aria-label="Retrieval query"><button id="retrieve">Retrieve memories</button></div>
+<div class="retrieval-settings"><label>Context budget <output id="budget-out">3</output><input id="budget" type="range" min="1" max="8" value="3"></label><label class="check-label"><input id="include-decayed" type="checkbox"> Include weak memories</label></div>
+<div id="retrieval-results" class="results" aria-live="polite"></div>
+<div class="memory-result"><span>SELECTED CONTEXT TOKENS (ESTIMATE)</span><strong id="context-tokens">0</strong><small id="context-summary">Run retrieval to populate the context window.</small><div class="memory-meter"><div id="context-fill"></div></div></div>
+</section>
+<section class="panel">
+<div class="section-head"><div><p class="eyebrow">03 / CONSOLIDATION</p><h2>Compress repeated experiences</h2></div><span class="tag">SYNTHESIS</span></div>
+<p class="explain">Consolidation groups memories with substantial word overlap, creates a synthesized record, and reduces the strength of source records. Real systems may use learned summarization, entity resolution, provenance tracking, and explicit conflict handling.</p>
+<div class="toolbar"><button id="consolidate">Run consolidation</button><span class="fineprint" id="consolidation-status">No consolidation run yet.</span></div>
+<div id="consolidation-log" class="log"></div>
+</section>
+<section class="panel glossary">
+<p class="eyebrow">04 / MODEL NOTES</p><h2>Operational concepts</h2>
+<dl>
+<dt>Encoding</dt><dd>Converting an observation into a durable memory representation, with metadata such as source, timestamp, and importance.</dd>
+<dt>Retrieval</dt><dd>Selecting candidate memories in response to a query, then ranking them under relevance and resource constraints.</dd>
+<dt>Decay</dt><dd>Reducing effective accessibility over time. Decay may be offset by reinforcement or importance.</dd>
+<dt>Consolidation</dt><dd>Combining overlapping records into more compact representations while retaining useful provenance.</dd>
+<dt>Context selection</dt><dd>Choosing a bounded subset of memories to expose to the model for a particular inference step.</dd>
+</dl>
+</section>
+<p class="fineprint">All records are local synthetic examples. Refreshing the page resets the simulation; no data is transmitted or persisted.</p>
+</main>
+<script src="memory.js"></script>
+</body></html>
