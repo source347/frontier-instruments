@@ -9,5 +9,5 @@
 - [ ] ML-KEM and ML-DSA explainers
 - [ ] Browser tests
 - [x] LLM Architecture Explorer
-- [ ] Agent Memory Simulator
+- [x] Agent Memory Simulator
 - [ ] WebGPU Compute Laboratory
