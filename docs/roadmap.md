@@ -8,6 +8,6 @@
 - [ ] Module-lattice and polynomial-ring visualizer
 - [ ] ML-KEM and ML-DSA explainers
 - [ ] Browser tests
-- [ ] LLM Architecture Explorer
+- [x] LLM Architecture Explorer
 - [ ] Agent Memory Simulator
 - [ ] WebGPU Compute Laboratory
