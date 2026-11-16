@@ -4,6 +4,7 @@ const fmtMs=n=>n<1?(n*1000).toFixed(1)+" µs":n.toFixed(2)+" ms";
 const fmtNum=n=>Number(n).toLocaleString("en-US");
 let device=null,adapter=null,limits={},gpuResult=null,cpuResult=null,runSerial=0;
 const shaderAdd=`
+override WG_SIZE: u32 = 256;
 struct Data { values: array<f32> };
 @group(0) @binding(0) var<storage, read> a: Data;
 @group(0) @binding(1) var<storage, read> b: Data;
@@ -15,6 +16,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
  output.values[i] = a.values[i] + b.values[i];
 }`;
 const shaderReduce=`
+override WG_SIZE: u32 = 256;
 struct Data { values: array<f32> };
 @group(0) @binding(0) var<storage, read> inputData: Data;
 @group(0) @binding(1) var<storage, read_write> partials: Data;
@@ -78,6 +80,7 @@ function buffer(size,usage){return device.createBuffer({size:Math.max(4,Math.cei
 async function runGpu(){
 if(!device){setStatus("No active GPU device. Use the CPU baseline or reload in a WebGPU-capable browser.");return}
 const serial=++runSerial,{n,wg,groups,op}=config(),data=makeInputs(n,op),bytes=n*4;
+if(groups>device.limits.maxComputeWorkgroupsPerDimension){setStatus("Dispatch exceeds this device’s maximum workgroups per dimension. Increase workgroup size or reduce element count.");return}
 if(bytes>device.limits.maxStorageBufferBindingSize){setStatus("Selected workload exceeds this device's storage-buffer binding limit.");return}
 $("run-gpu").disabled=true;setStatus("Compiling pipeline and dispatching "+fmtNum(n)+" elements…");
 let aBuf,bBuf,outBuf,readBuf,partialBuf;
