@@ -9,7 +9,7 @@ Frontier Instruments is an open-source, browser-native laboratory by Source347. 
 | Instrument | Status | Description |
 |---|---|---|
 | Post-Quantum Cryptography Lab | Available | Toy LWE encryption trace, lattice visualization, and NIST standards references |
-| LLM Architecture Explorer | Planned | Attention, positional encoding, KV caches, and mixture-of-experts |
+| LLM Architecture Explorer | Available | Interactive attention heatmap, positional encoding, KV-cache estimator, and MoE routing |
 | Agent Memory Simulator | Planned | Retrieval, consolidation, decay, and context selection |
 | WebGPU Compute Laboratory | Planned | Parallel workloads and browser-based compute |
 
