@@ -41,7 +41,8 @@ function config(){
 const n=Number($("elements").value),wg=Number($("workgroup").value),groups=Math.ceil(n/wg),op=$("operation").value;
 $("dispatch-summary").textContent=fmtNum(n)+" elements · "+wg+" threads/workgroup · "+fmtNum(groups)+" workgroups";
 $("groups-count").textContent=fmtNum(groups);$("threads-count").textContent=fmtNum(wg);$("invocations-count").textContent=fmtNum(groups*wg);
-$("shader-preview").textContent=op==="add"?shaderAdd.replace("WG_SIZE",String(wg)).replaceAll("&","&").replaceAll("<","<"):shaderReduce.replace("WG_SIZE",String(wg));
+const preview=op==="add"?shaderAdd:shaderReduce;
+$("shader-preview").textContent=preview.replace("override WG_SIZE: u32 = 256;\n","").replaceAll("WG_SIZE",String(wg));
 return{n,wg,groups,op};
 }
 ["elements","workgroup","operation"].forEach(id=>$(id).addEventListener("change",config));
