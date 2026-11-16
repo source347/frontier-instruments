@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Explore transformer attention, positional information, KV cache memory, and mixture-of-experts routing.">
+<title>LLM Architecture Explorer — Frontier Instruments</title>
+<link rel="stylesheet" href="../../assets/css/lab.css"><link rel="stylesheet" href="llm.css">
+</head>
+<body>
+<header><a class="brand" href="../../">F/I · FRONTIER INSTRUMENTS</a><a href="../../">← All instruments</a></header>
+<main>
+<p class="eyebrow">SOURCE347 / INSTRUMENT 002</p>
+<h1>LLM Architecture Explorer</h1>
+<p class="lead">Inspect the mechanisms inside a decoder-only transformer. Change model dimensions, observe causal attention, estimate inference memory, and route tokens through a sparse mixture-of-experts layer.</p>
+<div class="notice">INTERACTIVE REFERENCE MODEL — visualizations use small deterministic synthetic inputs. They illustrate core operations, not the weights, tokenizer, numerical kernels, or complete execution graph of a trained model.</div>
+
+<section class="panel">
+<div class="section-head"><div><p class="eyebrow">01 / MODEL CONFIGURATION</p><h2>Transformer dimensions</h2></div><span class="tag">LIVE PARAMETERS</span></div>
+<div class="config-grid">
+<label>Model width d<sub>model</sub><input id="dmodel" type="number" min="64" max="4096" step="64" value="768"></label>
+<label>Transformer layers<input id="layers" type="number" min="1" max="96" value="24"></label>
+<label>Query heads<input id="heads" type="number" min="1" max="64" value="12"></label>
+<label>KV heads<input id="kvheads" type="number" min="1" max="64" value="12"></label>
+<label>Context length<input id="context" type="number" min="128" max="131072" step="128" value="4096"></label>
+<label>Batch size<input id="batch" type="number" min="1" max="128" value="1"></label>
+<label>KV precision<select id="precision"><option value="2">FP16 / BF16 (2 bytes)</option><option value="4">FP32 (4 bytes)</option><option value="1">INT8 (1 byte)</option><option value="0.5">INT4 (0.5 byte)</option></select></label>
+</div>
+<div class="stat-grid">
+<div class="stat"><span>HEAD DIMENSION</span><strong id="headdim">64</strong><small>d<sub>model</sub> / query heads</small></div>
+<div class="stat"><span>KV CACHE ESTIMATE</span><strong id="kvtotal">2.25 GiB</strong><small>keys + values, all layers</small></div>
+<div class="stat"><span>ATTENTION PAIRS</span><strong id="pairs">8.39 M</strong><small>per layer, per sequence</small></div>
+</div>
+<p class="fineprint" id="config-warning">Assumes grouped-query compatible dimensions and a conventional decoder-only KV cache. Excludes weights, activations, allocator overhead, and temporary workspaces.</p>
+</section>
+
+<section class="panel">
+<div class="section-head"><div><p class="eyebrow">02 / SELF-ATTENTION</p><h2>Query, key, value</h2></div><span class="tag">CAUSAL MASKING</span></div>
+<p class="explain">Each token projects into queries (Q), keys (K), and values (V). Scaled dot-product attention computes <code>softmax(QKᵀ / √d<sub>k</sub> + mask) V</code>. The causal mask prevents a position from attending to future tokens.</p>
+<div class="attention-controls">
+<label>Sequence length <select id="seq"><option value="4">4 tokens</option><option value="6" selected>6 tokens</option><option value="8">8 tokens</option><option value="10">10 tokens</option></select></label>
+<label>Attention head <select id="head"><option value="0">Head 1</option><option value="1">Head 2</option><option value="2">Head 3</option><option value="3">Head 4</option></select></label>
+<label class="check-label"><input id="causal" type="checkbox" checked> Apply causal mask</label>
+</div>
+<div class="token-strip" id="tokens" aria-label="Synthetic token sequence"></div>
+<div class="heatmap-wrap"><div class="heatmap-title"><span>ATTENTION WEIGHTS</span><span>QUERY POSITION → KEY POSITION</span></div><div id="heatmap" class="heatmap" role="img" aria-label="Attention weight matrix"></div><div class="scale"><span>LOW</span><div class="scale-bar"></div><span>HIGH</span></div></div>
+<p id="attention-note" class="fineprint">Rows are query positions; columns are key positions. Masked future positions are excluded before softmax.</p>
+</section>
+
+<section class="panel">
+<div class="section-head"><div><p class="eyebrow">03 / POSITIONAL INFORMATION</p><h2>Where order enters</h2></div><span class="tag">POSITION ENCODING</span></div>
+<p class="explain">Self-attention alone is permutation-equivariant. Transformers therefore need a mechanism to represent token position. Compare illustrative sinusoidal encodings with rotary position embeddings (RoPE).</p>
+<div class="position-controls">
+<label>Encoding method<select id="position-mode"><option value="sin">Sinusoidal (additive)</option><option value="rope">Rotary (RoPE, pair rotation)</option></select></label>
+<label>Position<input id="position" type="range" min="0" max="31" value="7"><output id="position-out">7</output></label>
+</div>
+<div class="position-viz">
+<div><p class="mini-label">POSITION VECTOR / FIRST 16 CHANNELS</p><div id="position-bars" class="position-bars"></div></div>
+<div class="position-copy"><strong id="position-title">Sinusoidal encoding</strong><p id="position-description">A deterministic vector is added to token embeddings. Different frequencies encode different positional scales.</p><div class="equation compact" id="position-equation">PE(pos, 2i) = sin(pos / 10000^(2i/d))<br>PE(pos, 2i+1) = cos(pos / 10000^(2i/d))</div></div>
+</div>
+</section>
+
+<section class="panel">
+<div class="section-head"><div><p class="eyebrow">04 / INFERENCE MEMORY</p><h2>KV-cache calculator</h2></div><span class="tag">DECODE-TIME STATE</span></div>
+<p class="explain">Autoregressive decoding can reuse previously computed keys and values instead of recomputing attention projections for the entire prefix. The cache grows with batch size, layer count, sequence length, KV heads, head dimension, and element size.</p>
+<div class="equation">KV bytes = 2 × layers × batch × sequence × KV heads × head dimension × bytes / element</div>
+<div class="memory-result"><div><span>ESTIMATED KV CACHE</span><strong id="memory-main">2.25 GiB</strong><small id="memory-detail">2 × 24 × 1 × 4096 × 12 × 64 × 2 bytes</small></div><div class="memory-meter"><div id="memory-fill"></div></div><p id="memory-context" class="fineprint">Estimate scales linearly with context length and batch size.</p></div>
+</section>
+
+<section class="panel">
+<div class="section-head"><div><p class="eyebrow">05 / SPARSE EXPERT MODELS</p><h2>Mixture-of-experts routing</h2></div><span class="tag">TOP-K GATING</span></div>
+<p class="explain">A learned router scores experts for each token. Top-k routing activates only a subset of expert feed-forward networks per token. Sparse activation can increase total parameter capacity without activating every expert on every token.</p>
+<div class="moe-controls">
+<label>Number of experts<input id="experts" type="range" min="2" max="16" value="8"><output id="experts-out">8</output></label>
+<label>Experts per token (k)<input id="topk" type="range" min="1" max="4" value="2"><output id="topk-out">2</output></label>
+<label>Tokens in batch<input id="moe-tokens" type="range" min="4" max="16" value="8" step="1"><output id="moe-tokens-out">8</output></label>
+</div>
+<div class="moe-layout"><div><p class="mini-label">ROUTING ASSIGNMENTS</p><div id="routing" class="routing"></div></div><div><p class="mini-label">EXPERT LOAD</p><div id="expert-load" class="expert-load"></div><p id="routing-note" class="fineprint"></p></div></div>
+<button id="reroute" class="secondary-button">Regenerate routing</button>
+</section>
+
+<section class="panel glossary">
+<p class="eyebrow">06 / CONCEPTS &amp; LIMITATIONS</p><h2>Reading the model</h2>
+<dl>
+<dt>Multi-head attention</dt><dd>Several learned projection subspaces attend in parallel. This visualization samples synthetic scores; it does not load trained attention weights.</dd>
+<dt>Grouped-query attention (GQA)</dt><dd>Multiple query heads share each key/value head. When KV heads are fewer than query heads, the KV cache is reduced proportionally.</dd>
+<dt>KV cache</dt><dd>Stores keys and values for prior tokens during autoregressive inference. The estimate excludes model weights, activations, quantization metadata, fragmentation, and implementation-specific overhead.</dd>
+<dt>Mixture of experts (MoE)</dt><dd>A router dispatches tokens to selected expert networks. Real systems also require dispatch, combine, capacity, load-balancing, and distributed communication mechanisms.</dd>
+</dl>
+<p class="fineprint">This explorer is an architectural teaching aid, not a model profiler or benchmark. Values are illustrative and do not predict the performance or memory behavior of a specific deployed model.</p>
+</section>
+</main>
+<footer>SOURCE347 / FRONTIER INSTRUMENTS · EDUCATIONAL MODEL</footer>
+<script src="llm.js"></script>
+</body></html>
