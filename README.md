@@ -11,7 +11,7 @@ Frontier Instruments is an open-source, browser-native laboratory by Source347. 
 | Post-Quantum Cryptography Lab | Available | Toy LWE encryption trace, lattice visualization, and NIST standards references |
 | LLM Architecture Explorer | Available | Interactive attention heatmap, positional encoding, KV-cache estimator, and MoE routing |
 | Agent Memory Simulator | Available | Interactive memory encoding, lexical retrieval, recency decay, consolidation, and context budgeting |
-| WebGPU Compute Laboratory | Planned | Parallel workloads and browser-based compute |
+| WebGPU Compute Laboratory | Available | WGSL vector addition and parallel reduction, configurable dispatch geometry, CPU comparison, and result validation |
 
 ## Run locally
 
@@ -23,9 +23,13 @@ python -m http.server 8000
 
 Then visit http://localhost:8000.
 
+## Platform notes
+
+The WebGPU instrument requires a supported browser and GPU in a secure context (HTTPS or localhost). A JavaScript CPU baseline remains available when WebGPU is unavailable. Performance measurements are illustrative, include browser/runtime overhead, and are not controlled benchmarks.
+
 ## Security notice
 
-The cryptography instrument is an educational toy model. It is not ML-KEM, not a secure cryptographic implementation, and must never be used to protect real data. The memory simulator uses deterministic illustrative heuristics, not a production agent memory system.
+The cryptography instrument is an educational toy model. It is not ML-KEM, not a secure cryptographic implementation, and must never be used to protect real data. The memory simulator uses deterministic illustrative heuristics, not a production agent memory system. The WebGPU lab runs synthetic workloads locally and does not transmit workload data.
 
 ## License
 
