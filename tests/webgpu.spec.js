@@ -14,6 +14,7 @@ async function installGpuMock(page) {
       unmap() {}
     }
     const device = {
+      lost: new Promise(() => {}),
       limits: { maxComputeWorkgroupsPerDimension: 65535, maxStorageBufferBindingSize: 1 << 27, maxComputeWorkgroupSizeX: 256 },
       queue: {
         writeBuffer(buffer, offset, source) {
