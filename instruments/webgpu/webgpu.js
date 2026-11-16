@@ -53,7 +53,7 @@ $("gpu-bar-label").textContent=g===undefined?"—":fmtMs(g);$("cpu-bar-label").t
 }
 function setStatus(s){$("run-status").textContent=s}
 async function init(){
-if(!("gpu" in navigator)){ $("device-tag").textContent="UNAVAILABLE";$("api-status").textContent="WebGPU not exposed";$("adapter-name").textContent="No WebGPU API";$("device-note").textContent="Use a current browser with WebGPU enabled, over HTTPS or localhost. The CPU baseline remains available.";return}
+if(!("gpu" in navigator)||!navigator.gpu){ $("device-tag").textContent="UNAVAILABLE";$("api-status").textContent="WebGPU not exposed";$("adapter-name").textContent="No WebGPU API";$("device-note").textContent="Use a current browser with WebGPU enabled, over HTTPS or localhost. The CPU baseline remains available.";return}
 try{
 adapter=await navigator.gpu.requestAdapter();
 if(!adapter)throw new Error("No compatible GPU adapter was returned by the browser.");
