@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Run parallel compute workloads in the browser with WebGPU and compare CPU execution.">
+<title>WebGPU Compute Laboratory — Frontier Instruments</title>
+<link rel="stylesheet" href="../../assets/css/lab.css"><link rel="stylesheet" href="webgpu.css">
+</head>
+<body>
+<header><a class="brand" href="../../">F/I · FRONTIER INSTRUMENTS</a><a href="../../instruments/">← All instruments</a></header>
+<main>
+<p class="eyebrow">SOURCE347 / INSTRUMENT 004</p>
+<h1>WebGPU Compute Laboratory</h1>
+<p class="lead">Dispatch parallel compute workloads from the browser, inspect workgroup geometry, and compare GPU execution with a JavaScript CPU baseline.</p>
+<div class="notice">HARDWARE-DEPENDENT EXPERIMENT — WebGPU requires a supported browser, GPU, and secure context (HTTPS or localhost). Timings are indicative, include runtime overhead, and are not a controlled benchmark. Workloads are synthetic and do not access user data.</div>
+<section class="panel">
+<div class="section-head"><div><p class="eyebrow">01 / DEVICE</p><h2>Compute adapter</h2></div><span class="tag" id="device-tag">CHECKING</span></div>
+<div class="device-grid">
+<div><span class="mini-label">API AVAILABILITY</span><strong id="api-status">Checking WebGPU…</strong></div>
+<div><span class="mini-label">ADAPTER</span><strong id="adapter-name">Not initialized</strong></div>
+<div><span class="mini-label">LIMIT / WORKGROUP</span><strong id="workgroup-limit">—</strong></div>
+</div>
+<p id="device-note" class="fineprint" aria-live="polite">Requesting a GPU adapter. No compute workload will run until you start it.</p>
+</section>
+<section class="panel">
+<div class="section-head"><div><p class="eyebrow">02 / WORKLOAD</p><h2>Configure a dispatch</h2></div><span class="tag">WGSL COMPUTE</span></div>
+<div class="controls-grid">
+<label>Operation<select id="operation"><option value="add">Vector addition · A + B</option><option value="reduce">Parallel reduction · Σ Aᵢ</option></select></label>
+<label>Elements<select id="elements"><option value="16384">16,384</option><option value="65536" selected>65,536</option><option value="262144">262,144</option><option value="1048576">1,048,576</option><option value="4194304">4,194,304</option></select></label>
+<label>Workgroup size<select id="workgroup"><option value="64">64 threads</option><option value="128">128 threads</option><option value="256" selected>256 threads</option></select></label>
+</div>
+<div class="dispatch-summary" id="dispatch-summary">65,536 elements · 256 threads/workgroup · 256 workgroups</div>
+<div class="actions"><button id="run-gpu" disabled>Run on GPU</button><button id="run-cpu" class="secondary-button">Run CPU baseline</button><button id="reset" class="secondary-button">Reset results</button></div>
+<p id="run-status" class="fineprint" aria-live="polite">Initialize the adapter to enable GPU execution.</p>
+</section>
+<section class="panel">
+<div class="section-head"><div><p class="eyebrow">03 / RESULTS</p><h2>Execution measurements</h2></div><span class="tag">LATEST RUN</span></div>
+<div class="result-grid">
+<div class="result"><span>GPU TIME</span><strong id="gpu-time">—</strong><small id="gpu-throughput">No GPU run yet</small></div>
+<div class="result"><span>CPU TIME</span><strong id="cpu-time">—</strong><small id="cpu-throughput">No CPU run yet</small></div>
+<div class="result"><span>VALIDATION</span><strong id="validation">—</strong><small id="validation-note">Results are checked against a CPU reference.</small></div>
+</div>
+<div class="chart-wrap"><div class="mini-label">RELATIVE WALL-CLOCK TIME · LOG SCALE NOT USED</div><div class="bar-row"><span>GPU</span><div class="bar-track"><i id="gpu-bar"></i></div><b id="gpu-bar-label">—</b></div><div class="bar-row"><span>CPU</span><div class="bar-track"><i id="cpu-bar"></i></div><b id="cpu-bar-label">—</b></div></div>
+<div class="output-box"><span class="mini-label" id="output-label">OUTPUT INSPECTION</span><pre id="output-preview">Run a workload to inspect sample outputs.</pre></div>
+</section>
+<section class="panel">
+<div class="section-head"><div><p class="eyebrow">04 / EXECUTION MODEL</p><h2>How dispatch geometry works</h2></div><span class="tag">GPU PROGRAMMING</span></div>
+<div class="geometry" id="geometry"><div><span>WORKGROUPS</span><strong id="groups-count">256</strong></div><div><span>THREADS / GROUP</span><strong id="threads-count">256</strong></div><div><span>TOTAL INVOCATIONS</span><strong id="invocations-count">65,536</strong></div></div>
+<p class="explain">A compute shader is dispatched as a grid of workgroups. Each workgroup contains a fixed number of invocations. The global invocation ID identifies an element in the overall workload; bounds checks handle any excess invocations in the final workgroup.</p>
+<pre class="shader" id="shader-preview">@compute @workgroup_size(256)
+fn main(@builtin(global_invocation_id) gid: vec3&lt;u32&gt;) {
+  let i = gid.x;
+  if (i &gt;= arrayLength(&amp;output)) { return; }
+  output[i] = a[i] + b[i];
+}</pre>
+</section>
+<section class="panel glossary">
+<p class="eyebrow">05 / MODEL NOTES</p><h2>Concepts and caveats</h2>
+<dl>
+<dt>WebGPU</dt><dd>A browser API for modern GPU graphics and general-purpose compute, using WGSL as its shader language.</dd>
+<dt>WGSL</dt><dd>WebGPU Shading Language. The compute kernels in this lab are compiled by the browser's WebGPU implementation.</dd>
+<dt>Workgroup</dt><dd>A group of shader invocations that can cooperate through workgroup memory and barriers.</dd>
+<dt>Dispatch</dt><dd>The command that schedules a grid of workgroups. This lab uses one-dimensional dispatch.</dd>
+<dt>Readback</dt><dd>GPU output is copied to a mappable buffer so JavaScript can inspect and validate the result. Readback adds overhead.</dd>
+</dl>
+</section>
+<p class="fineprint">This lab does not request optional device features, create persistent storage, or send workload data over the network. GPU resources are released when the page is closed.</p>
+</main>
+<script src="webgpu.js"></script>
+</body></html>
