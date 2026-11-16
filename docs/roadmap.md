@@ -10,4 +10,4 @@
 - [ ] Browser tests
 - [x] LLM Architecture Explorer
 - [x] Agent Memory Simulator
-- [ ] WebGPU Compute Laboratory
+- [x] WebGPU Compute Laboratory
