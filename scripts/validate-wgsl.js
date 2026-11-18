@@ -15,7 +15,7 @@ function extractShader(name) {
   return match[1].trim() + "\n";
 }
 
-const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "frontier-wgsl-"));
+const tempDir = fs.mkdtempSync(path.join(process.cwd(), ".wgsl-validation-"));
 const shaders = [
   ["vector-add", extractShader("shaderAdd")],
   ["parallel-reduction", extractShader("shaderReduce")]
@@ -34,7 +34,7 @@ try {
         "naga-wasi-cli@0.1.0",
         "--override",
         "WG_SIZE=" + size,
-        file
+        path.relative(process.cwd(), file)
       ], { stdio: "inherit" });
       if (result.error) {
         console.error(result.error.message);
