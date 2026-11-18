@@ -1,6 +1,11 @@
 {
   "name": "frontier-instruments",
   "private": true,
-  "scripts": { "test:browser": "playwright test" },
-  "devDependencies": { "@playwright/test": "^1.56.1" }
+  "scripts": {
+    "test:browser": "playwright test",
+    "validate:wgsl": "node scripts/validate-wgsl.js"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.56.1"
+  }
 }
