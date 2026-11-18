@@ -17,6 +17,8 @@ jobs:
           node-version: 22
       - name: Install test dependencies
         run: npm install
+      - name: Validate WGSL with Naga
+        run: npm run validate:wgsl
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
       - name: Run browser tests
